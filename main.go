@@ -53,8 +53,8 @@ import (
 		writer.Close()
 	    tr := &http.Transport{
 			MaxIdleConns:          10,
-			IdleConnTimeout:       15 * time.Second,
-			ResponseHeaderTimeout: 15 * time.Second,
+			IdleConnTimeout:       60 * time.Second,
+			ResponseHeaderTimeout: 60 * time.Second,
 			DisableKeepAlives:     false,
 		}
 		client := &http.Client{Transport: tr,}
@@ -72,9 +72,8 @@ import (
 			fmt.Println(err)
 		}
 	    wg.Done()
-		resp.Body.Close()
-		
-		fmt.Println(resp.StatusCode)	
+		fmt.Println(resp.StatusCode)
+		resp.Body.Close()	
 			}(path)
 	}
 	return nil
