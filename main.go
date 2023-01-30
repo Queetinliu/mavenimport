@@ -25,14 +25,16 @@ import (
 				fmt.Println(err)
 			    return err
 			}
-			patters := "(.|/)+/\\.(.)*|(.|/)+/\\^archetype-catalog\\.xml(.)*|(.|/)+/\\^maven-metadata-local\\.xml|(.|/)+/\\^maven-metadata-deployment\\.xml|(.|/)*\\.sh"
+			patters := "(.|/)+/\\.(.)*|(.|/)+/\\^archetype-catalog\\.xml(.)*|(.|/)+/\\^maven-metadata-local\\.xml|(.|/)+/\\^maven-metadata-deployment\\.xml|(.|/)*\\.sh|(.|/)*\\.exe"
             matched,err := regexp.Match(patters,[]byte(path))
             if err != nil {
               fmt.Println(err)
 			  return err
 			}
 			if ! info.IsDir() && ! matched {
+				fmt.Println(path)
 				wg.Add(1)
+			
 			go func(file string)  {
 				form := new(bytes.Buffer)
 				writer := multipart.NewWriter(form)
@@ -58,13 +60,13 @@ import (
 			DisableKeepAlives:     false,
 		}
 		client := &http.Client{Transport: tr,}
-		url := *repositoryurl+path
+		url := *repositoryurl+filepath.ToSlash(path)
 		req, err := http.NewRequest("PUT", url, form)
 		if err != nil {
 			fmt.Println(err)
 		}
 		req.Header.Set("Content-Type", writer.FormDataContentType())
-		//fmt.Println(req.Header)
+		fmt.Println(req.Body)
 		//fmt.Println(req.Method)
 		req.SetBasicAuth(*username, *password)
 		resp, err := client.Do(req)
@@ -72,16 +74,17 @@ import (
 			fmt.Println(err)
 		}
 	    wg.Done()
-		//fmt.Println(resp.StatusCode)
+		fmt.Println(resp.StatusCode)
 		if _, err := io.Copy(io.Discard, resp.Body); err != nil {
         fmt.Println(err)
     }
 		resp.Body.Close()	
 			}(path)
 	}
-	return nil
+    return nil
 })
 if err != nil {
 	fmt.Println(err)
 }
 	}
+	
