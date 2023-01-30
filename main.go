@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -72,7 +73,10 @@ import (
 			fmt.Println(err)
 		}
 	    wg.Done()
-		fmt.Println(resp.StatusCode)
+		//fmt.Println(resp.StatusCode)
+		if _, err := io.Copy(ioutil.Discard, resp.Body); err != nil {
+        fmt.Println(err)
+    }
 		resp.Body.Close()	
 			}(path)
 	}
