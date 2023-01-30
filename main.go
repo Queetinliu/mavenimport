@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -74,7 +73,7 @@ import (
 		}
 	    wg.Done()
 		//fmt.Println(resp.StatusCode)
-		if _, err := io.Copy(ioutil.Discard, resp.Body); err != nil {
+		if _, err := io.Copy(io.Discard, resp.Body); err != nil {
         fmt.Println(err)
     }
 		resp.Body.Close()	
@@ -86,55 +85,3 @@ if err != nil {
 	fmt.Println(err)
 }
 	}
-/*	
-func uploadfile(ch chan string,username string,password string,repourl string) (errch chan error) {
-
-    form := new(bytes.Buffer)
-	writer := multipart.NewWriter(form)
-	path := <- ch 
-	fw, err := writer.CreateFormFile("fileUploadName", path)
-		if err != nil {
-			fmt.Println(err)
-			errch <- err
-			return errch
-		}
-		fd, err := os.Open(path)
-		if err != nil {
-			fmt.Println(err)
-			errch <- err
-			return errch
-		}
-		defer fd.Close()
-		_, err = io.Copy(fw, fd)
-		if err != nil {
-			fmt.Println(err)
-			errch <- err
-			return errch
-		}
-	
-		writer.Close()
-	
-		client := &http.Client{}
-		url := repourl+path
-		req, err := http.NewRequest("PUT", url, form)
-		if err != nil {
-			fmt.Println(err)
-			errch <- err
-			return errch
-		}
-		req.Header.Set("Content-Type", writer.FormDataContentType())
-		//fmt.Println(req.Header)
-		//fmt.Println(req.Method)
-		req.SetBasicAuth(username, password)
-		resp, err := client.Do(req)
-		if err != nil {
-			fmt.Println(err)
-			errch <- err
-			return errch
-		}
-		defer resp.Body.Close()
-		
-		fmt.Println(resp.StatusCode)	
-	return nil
-}
-*/
