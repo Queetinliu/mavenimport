@@ -19,12 +19,13 @@ import (
 		repositoryurl := flag.String("r","http://nexus.z-bank.com","input your repository url")
 		flag.Parse()
 		var wg sync.WaitGroup
-		wg.Wait()
+		
 		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				fmt.Println(err)
 			    return err
 			}
+			wg.Wait()
 			patters := "(.|/)+/\\.(.)*|(.|/)+/\\^archetype-catalog\\.xml(.)*|(.|/)+/\\^maven-metadata-local\\.xml|(.|/)+/\\^maven-metadata-deployment\\.xml|(.|/)*\\.sh|(.|/)*\\.exe"
             matched,err := regexp.Match(patters,[]byte(filepath.ToSlash(path)))
             if err != nil {
@@ -60,7 +61,7 @@ import (
 			DisableKeepAlives:     false,
 		}
 		client := &http.Client{Transport: tr,}
-		url := *repositoryurl+"/"+filepath.ToSlash(path)
+		url := *repositoryurl+filepath.ToSlash(path)
 		fmt.Println(url)
 		req, err := http.NewRequest("PUT", url, form)
 		if err != nil {
