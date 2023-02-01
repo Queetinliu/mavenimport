@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sync"
+	//"sync"
 	"time"
 )
 	func main() {
@@ -18,23 +18,23 @@ import (
 		password := flag.String("p","admin","input your password")
 		repositoryurl := flag.String("r","http://nexus.z-bank.com","input your repository url")
 		flag.Parse()
-		var wg sync.WaitGroup
-		
+		//var wg sync.WaitGroup
+		//wg.Wait()
 		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				fmt.Println(err)
 			    return err
 			}
-			wg.Wait()
 			patters := "(.|/)+/\\.(.)*|(.|/)+/\\^archetype-catalog\\.xml(.)*|(.|/)+/\\^maven-metadata-local\\.xml|(.|/)+/\\^maven-metadata-deployment\\.xml|(.|/)*\\.sh|(.|/)*\\.exe"
+			//fmt.Println(path)
             matched,err := regexp.Match(patters,[]byte(filepath.ToSlash(path)))
             if err != nil {
               fmt.Println(err)
 			  return err
 			}
 			if ! info.IsDir() && ! matched {
-				fmt.Println(path)
-				wg.Add(1)
+				//fmt.Println(path)
+				//wg.Add(1)
 			
 			go func(file string)  {
 				form := new(bytes.Buffer)
@@ -62,7 +62,7 @@ import (
 		}
 		client := &http.Client{Transport: tr,}
 		url := *repositoryurl+filepath.ToSlash(path)
-		fmt.Println(url)
+		//fmt.Println(url)
 		req, err := http.NewRequest("PUT", url, form)
 		if err != nil {
 			fmt.Println(err)
@@ -75,7 +75,7 @@ import (
 		if err != nil {
 			fmt.Println(err)
 		}
-	    wg.Done()
+	    //wg.Done()
 		fmt.Println(resp.StatusCode)
 		if _, err := io.Copy(io.Discard, resp.Body); err != nil {
         fmt.Println(err)
