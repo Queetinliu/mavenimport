@@ -32,7 +32,7 @@ import (
 			  return err
 			}
 			if ! info.IsDir() && ! matched {
-				//fmt.Println(path)
+				fmt.Println(path)
 				wg.Add(1)
 			
 			go func(file string)  {
@@ -60,7 +60,8 @@ import (
 			DisableKeepAlives:     false,
 		}
 		client := &http.Client{Transport: tr,}
-		url := *repositoryurl+filepath.ToSlash(path)
+		url := *repositoryurl+"/"+filepath.ToSlash(path)
+		fmt.Println(url)
 		req, err := http.NewRequest("PUT", url, form)
 		if err != nil {
 			fmt.Println(err)
@@ -74,7 +75,7 @@ import (
 			fmt.Println(err)
 		}
 	    wg.Done()
-		//fmt.Println(resp.StatusCode)
+		fmt.Println(resp.StatusCode)
 		if _, err := io.Copy(io.Discard, resp.Body); err != nil {
         fmt.Println(err)
     }
