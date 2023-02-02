@@ -25,8 +25,9 @@ import (
 				fmt.Println(err)
 			    return err
 			}
-			patters := "(.|/)+/\\.(.)*|(.|/)+/\\^archetype-catalog\\.xml(.)*|(.|/)+/\\^maven-metadata-local\\.xml|(.|/)+/\\^maven-metadata-deployment\\.xml|(.|/)*\\.sh|(.|/)*\\.exe"
-			//fmt.Println(path)
+			patters := "(.|/)+/\\.(.)*|(.|/)+/archetype-catalog\\.xml|(.|/)+/maven-metadata-local\\.xml|(.|/)+/maven-metadata-deployment\\.xml|(.|/)*\\.sh|(.|/)*\\.exe|(.|/)+/_remote\\.repositories|(.|/)+/maven-metadata-(nexus|Nexus2).xml|(.|/)+/resolver-status\\.properties"
+			//patters := "(.|/)+/_remote\\.repositories"
+			//fmt.Println(filepath.ToSlash(path))
             matched,err := regexp.Match(patters,[]byte(filepath.ToSlash(path)))
             if err != nil {
               fmt.Println(err)
@@ -35,8 +36,7 @@ import (
 			if ! info.IsDir() && ! matched {
 				//fmt.Println(path)
 				//wg.Add(1)
-			
-			go func(file string)  {
+		
 				form := new(bytes.Buffer)
 				writer := multipart.NewWriter(form)
 				fw, err := writer.CreateFormFile("fileUploadName", path)
@@ -76,13 +76,13 @@ import (
 			fmt.Println(err)
 		}
 	    //wg.Done()
-		fmt.Println(resp.StatusCode)
+		//fmt.Println(resp.StatusCode)
 		if _, err := io.Copy(io.Discard, resp.Body); err != nil {
         fmt.Println(err)
     }
 		resp.Body.Close()	
-			}(path)
-	}
+			}
+	
     return nil
 })
 if err != nil {
