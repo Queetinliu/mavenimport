@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	//"sync"
+	"sync"
 	"time"
 )
 	func main() {
@@ -18,13 +18,13 @@ import (
    password := flag.String("p","admin","input your password")
    repositoryurl := flag.String("r","http://nexus.z-bank.com","input your repository url")
    flag.Parse()
+   var wg sync.WaitGroup
    err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	var wg sync.WaitGroup
-	wg.Wait()
+	
     patters := "(.|/)+/\\.(.)*|(.|/)+/archetype-catalog\\.xml|(.|/)+/maven-metadata-local\\.xml|(.|/)+/maven-metadata-deployment\\.xml|(.|/)*\\.sh|(.|/)*\\.exe|(.|/)+/_remote\\.repositories|(.|/)+/maven-metadata-(nexus|Nexus2).xml|(.|/)+/resolver-status\\.properties"
 	//patters := "(.|/)+/\\.(.)*"
 	matched,err := regexp.Match(patters,[]byte(filepath.ToSlash(path)))
@@ -35,7 +35,7 @@ import (
     if ! info.IsDir() && ! matched {
 		//fmt.Println(path)
 		wg.Add(1)
-	}
+	
 
 	go func(file string){
 		form := new(bytes.Buffer)
@@ -43,26 +43,7 @@ import (
 			fw, err := writer.CreateFormFile("fileUploadName", path)
 			if err != nil {
 				fmt.Println(err)
-			    return err
 			}
-			patters := "(.|/)+/\\.(.)*|(.|/)+/archetype-catalog\\.xml|(.|/)+/maven-metadata-local\\.xml|(.|/)+/maven-metadata-deployment\\.xml|(.|/)*\\.sh|(.|/)*\\.exe|(.|/)+/_remote\\.repositories|(.|/)+/maven-metadata-(nexus|Nexus2).xml|(.|/)+/resolver-status\\.properties"
-			//patters := "(.|/)+/_remote\\.repositories"
-			//fmt.Println(filepath.ToSlash(path))
-            matched,err := regexp.Match(patters,[]byte(filepath.ToSlash(path)))
-            if err != nil {
-              fmt.Println(err)
-			  return err
-			}
-			if ! info.IsDir() && ! matched {
-				//fmt.Println(path)
-				//wg.Add(1)
-		
-				form := new(bytes.Buffer)
-				writer := multipart.NewWriter(form)
-				fw, err := writer.CreateFormFile("fileUploadName", path)
-		        if err != nil {
-			    fmt.Println(err)
-		        }
 		       fd, err := os.Open(path)
 		if err != nil {
 			fmt.Println(err)
@@ -95,18 +76,18 @@ import (
 		if err != nil {
 			fmt.Println(err)
 		}
-	    //wg.Done()
+	    wg.Done()
 		//fmt.Println(resp.StatusCode)
 		if _, err := io.Copy(io.Discard, resp.Body); err != nil {
         fmt.Println(err)
     }
 		resp.Body.Close()	
-			}
-	
-    return nil
-})
+			}(path)
+}
+return nil
+   })
+   wg.Wait()
 if err != nil {
 	fmt.Println(err)
 }
-	}
-	
+}
