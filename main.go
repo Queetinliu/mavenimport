@@ -15,12 +15,41 @@ import (
 )
 	func main() {
         username := flag.String("u","admin","input your username")
+<<<<<<< Updated upstream
 		password := flag.String("p","admin","input your password")
 		repositoryurl := flag.String("r","http://nexus.z-bank.com","input your repository url")
 		flag.Parse()
 		//var wg sync.WaitGroup
 		//wg.Wait()
 		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+=======
+   password := flag.String("p","admin","input your password")
+   repositoryurl := flag.String("r","http://nexus.z-bank.com","input your repository url")
+   flag.Parse()
+   err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	var wg sync.WaitGroup
+	wg.Wait()
+    patters := "(.|/)+/\\.(.)*|(.|/)+/archetype-catalog\\.xml|(.|/)+/maven-metadata-local\\.xml|(.|/)+/maven-metadata-deployment\\.xml|(.|/)*\\.sh|(.|/)*\\.exe|(.|/)+/_remote\\.repositories|(.|/)+/maven-metadata-(nexus|Nexus2).xml|(.|/)+/resolver-status\\.properties"
+	//patters := "(.|/)+/\\.(.)*"
+	matched,err := regexp.Match(patters,[]byte(filepath.ToSlash(path)))
+	if err != nil {
+	  fmt.Println(err)
+	  return err
+	}
+    if ! info.IsDir() && ! matched {
+		//fmt.Println(path)
+		wg.Add(1)
+	}
+
+	go func(file string){
+		form := new(bytes.Buffer)
+		writer := multipart.NewWriter(form)
+			fw, err := writer.CreateFormFile("fileUploadName", path)
+>>>>>>> Stashed changes
 			if err != nil {
 				fmt.Println(err)
 			    return err
