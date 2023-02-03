@@ -15,14 +15,6 @@ import (
 )
 	func main() {
         username := flag.String("u","admin","input your username")
-<<<<<<< Updated upstream
-		password := flag.String("p","admin","input your password")
-		repositoryurl := flag.String("r","http://nexus.z-bank.com","input your repository url")
-		flag.Parse()
-		//var wg sync.WaitGroup
-		//wg.Wait()
-		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-=======
    password := flag.String("p","admin","input your password")
    repositoryurl := flag.String("r","http://nexus.z-bank.com","input your repository url")
    flag.Parse()
@@ -49,7 +41,6 @@ import (
 		form := new(bytes.Buffer)
 		writer := multipart.NewWriter(form)
 			fw, err := writer.CreateFormFile("fileUploadName", path)
->>>>>>> Stashed changes
 			if err != nil {
 				fmt.Println(err)
 			    return err
