@@ -16,7 +16,7 @@ import (
 	func main() {
         username := flag.String("u","admin","input your username")
 		password := flag.String("p","admin","input your password")
-		repositoryurl := flag.String("r","http://nexus.z-bank.com","input your repository url")
+		repositoryurl := flag.String("r","http://nexus.example.com","input your repository url")
 		flag.Parse()
 		var wg sync.WaitGroup
 		wg.Wait()
