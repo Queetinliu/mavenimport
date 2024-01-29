@@ -16,32 +16,33 @@ import (
 
 var wg sync.WaitGroup
 var client *http.Client
+
 func init() {
-	     tr := &http.Transport{
-	     	DisableKeepAlives:     false,
-	     	DisableCompression:    false,
-	     	MaxIdleConns:          0,
-	     	MaxIdleConnsPerHost:   1024,
-	     	MaxConnsPerHost:       0,
-	     	IdleConnTimeout:       0,
-	     	ResponseHeaderTimeout: 0,
-	     	ExpectContinueTimeout: 0,
-	     	MaxResponseHeaderBytes: 0,
-	     	WriteBufferSize:        0,
-	     	ReadBufferSize:         0,
-	     	ForceAttemptHTTP2:      false,
-	     }
-		 client = &http.Client{Transport: tr}
-		}
+	tr := &http.Transport{
+		DisableKeepAlives:      false,
+		DisableCompression:     false,
+		MaxIdleConns:           0,
+		MaxIdleConnsPerHost:    1024,
+		MaxConnsPerHost:        0,
+		IdleConnTimeout:        0,
+		ResponseHeaderTimeout:  0,
+		ExpectContinueTimeout:  0,
+		MaxResponseHeaderBytes: 0,
+		WriteBufferSize:        0,
+		ReadBufferSize:         0,
+		ForceAttemptHTTP2:      false,
+	}
+	client = &http.Client{Transport: tr}
+}
 func main() {
 	username := flag.String("u", "admin", "input your username")
 	password := flag.String("p", "admin", "input your password")
 	repositoryurl := flag.String("r", "http://nexus.com", "input your repository url")
 	flag.Parse()
-    const maxConcurrent = 600
-	filech := make(chan string,1)
+	const maxConcurrent = 600
+	filech := make(chan string, 1)
 	wg.Add(1)
-	go uploadfile(*username, *password, *repositoryurl, filech,maxConcurrent)
+	go uploadfile(*username, *password, *repositoryurl, filech, maxConcurrent)
 	wg.Add(1)
 	go findfile(filech)
 	wg.Wait()
@@ -55,13 +56,15 @@ func findfile(ch chan string) {
 			fmt.Println(err)
 			return err
 		}
-		patters := "(.|/)+/\\.(.)*|(.|/)+/\\^archetype-catalog\\.xml(.)*|(.|/)+/\\^maven-metadata-local\\.xml|(.|/)+/\\^maven-metadata-deployment\\.xml|(.|/)*\\.sh"
+		//patters := "(.|/)+/\\.(.)*|(.|/)+/\\^archetype-catalog\\.xml(.)*|(.|/)+/\\^maven-metadata-local\\.xml|(.|/)+/\\^maven-metadata-deployment\\.xml|(.|/)*\\.sh"
+		patters := "(.|/)+\\.jar$|(.|/)+\\.pom$"
 		matched, err := regexp.Match(patters, []byte(path))
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
-		if !info.IsDir() && !matched {
+		if !info.IsDir() && matched {
+			fmt.Println(path)
 			ch <- path
 		}
 		return nil
@@ -72,7 +75,7 @@ func findfile(ch chan string) {
 	close(ch)
 }
 
-func uploadfile(username, password, repositoryurl string, ch chan string,maxConcurrent int) {
+func uploadfile(username, password, repositoryurl string, ch chan string, maxConcurrent int) {
 	defer wg.Done()
 	var innerwg sync.WaitGroup
 	sem := make(chan struct{}, maxConcurrent)
@@ -99,15 +102,7 @@ func uploadfile(username, password, repositoryurl string, ch chan string,maxConc
 			}
 
 			writer.Close()
-			/*
-			tr := &http.Transport{
-				MaxIdleConns: 0,
-				IdleConnTimeout:       180 * time.Second,
-				ResponseHeaderTimeout: 60 * time.Second,
-				DisableKeepAlives:     false,
-			}
-			client := &http.Client{Transport: tr}
-			*/
+
 			url := repositoryurl + f
 			req, err := http.NewRequest("PUT", url, form)
 			if err != nil {
@@ -116,11 +111,20 @@ func uploadfile(username, password, repositoryurl string, ch chan string,maxConc
 			req.Header.Set("Content-Type", writer.FormDataContentType())
 			req.SetBasicAuth(username, password)
 			resp, err := client.Do(req)
+			if resp := resp; resp != nil {
+				defer resp.Body.Close()
+				if resp.StatusCode != http.StatusCreated {
+					bodyBytes, _ := io.ReadAll(resp.Body)
+					bodyString := string(bodyBytes)
+					fmt.Printf("Failed to upload file to repository: status code %d, body: %s", resp.StatusCode, bodyString)
+				} else {
+					io.Copy(io.Discard, resp.Body)
+				}
+			}
 			if err != nil {
 				fmt.Println(err)
 			}
-            io.Copy(io.Discard, resp.Body);
-			defer resp.Body.Close()
+
 		}(path)
 	}
 	innerwg.Wait()
