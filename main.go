@@ -64,7 +64,7 @@ func findfile(ch chan string) {
 			return err
 		}
 		if !info.IsDir() && matched {
-			fmt.Println(path)
+			//fmt.Println(path)
 			ch <- path
 		}
 		return nil
