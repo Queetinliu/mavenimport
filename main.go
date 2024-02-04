@@ -40,7 +40,7 @@ func main() {
 	repositoryurl := flag.String("r", "http://nexus.com", "input your repository url")
 	flag.Parse()
 	const maxConcurrent = 600
-	filech := make(chan string, 1)
+	filech := make(chan string, maxConcurrent)
 	wg.Add(1)
 	go uploadfile(*username, *password, *repositoryurl, filech, maxConcurrent)
 	wg.Add(1)
